@@ -459,6 +459,15 @@ body[data-tab="inv"]{--acc:#475569;--acc2:#475569;--ink-on:#fff}
 </style>
 </head>
 <body data-tab="visit">
+<div id="gate" hidden style="position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="width:100%;max-width:340px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;text-align:center">
+    <div style="font-size:20px;font-weight:700;color:var(--ink)">RIGHT FIELD</div>
+    <div class="sub" style="margin:6px 0 14px">اكتب كلمة السر اللي ابعتها لك المدير</div>
+    <input class="inp" id="gatePass" type="password" placeholder="كلمة السر" autocomplete="current-password" style="width:100%;margin-bottom:10px;text-align:center">
+    <button class="main" id="gateBtn" style="width:100%">دخول</button>
+    <div class="sub" id="gateMsg" style="margin-top:10px;color:#B42318;min-height:18px"></div>
+  </div>
+</div>
 <header class="wrap">
   <h1>RIGHT FIELD</h1>
 <div class="sub" style="margin-top:-4px">تصميم مهندس احمد عبد الكريم</div>
@@ -555,7 +564,8 @@ body[data-tab="inv"]{--acc:#475569;--acc2:#475569;--ink-on:#fff}
   <div class="btns rcb"><button id="bkExp">تصدير نسخة احتياطية</button><button id="bkImp">استيراد نسخة</button></div>
   <input type="file" id="bkFile" accept="application/json,.json" hidden>
 </details>
-  <details class="sec"><summary>🗑️ مسح البيانات</summary>
+  <button class="mini" id="logout" style="margin:6px 0 10px">تسجيل خروج</button>
+<details class="sec"><summary>🗑️ مسح البيانات</summary>
   <div class="sub" style="margin-bottom:8px">هيتمسح كل الأرشيف والأوردرات والإيصالات والزيارات والأرصدة من الجهاز. لو عايز تحتفظ بيها، صدّر نسخة احتياطية الأول.</div>
   <button id="wipe" class="reset">مسح كل البيانات</button>
 </details>
@@ -958,6 +968,24 @@ $('invHist').addEventListener('click',function(e){
   if(v){invShow(+v.dataset.invview);return}
   if(d){if(!twoTap(d,'j'+d.dataset.invdel))return;saveInvList(loadInv().filter(function(r){return String(r.id)!==d.dataset.invdel}));invHistRender();$('invView').hidden=true}
 });
+const PASS_HASH='0c289395aebbd697c7faf4deb4abb99960120d704793bfbaf4794a2762936fca';
+async function shaHex(t){var b=new TextEncoder().encode(t),h=await crypto.subtle.digest('SHA-256',b);return Array.from(new Uint8Array(h)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+function gateInit(){
+  if(PASS_HASH==='PUT_HASH_HERE')return;
+  var ok=false;try{ok=localStorage.getItem('rn_auth')===PASS_HASH}catch(e){}
+  $('gate').hidden=ok;
+}
+function gateSubmit(){
+  var v=$('gatePass').value;if(!v){$('gateMsg').textContent='اكتب كلمة السر';return}
+  shaHex(v).then(function(h){
+    if(h===PASS_HASH){try{localStorage.setItem('rn_auth',PASS_HASH)}catch(e){}$('gate').hidden=true;$('gatePass').value='';$('gateMsg').textContent=''}
+    else{$('gateMsg').textContent='كلمة السر غلط'}
+  }).catch(function(){$('gateMsg').textContent='المتصفح ده مش بيدعم الحماية، افتح الرابط من كروم'});
+}
+$('gateBtn').onclick=gateSubmit;
+$('gatePass').addEventListener('keydown',function(e){if(e.key==='Enter')gateSubmit()});
+$('logout').onclick=function(){try{localStorage.removeItem('rn_auth')}catch(e){}location.reload()};
+gateInit();
 function hasAny(){var D=todayData();return D.o.length||D.c.length||visRows().length}
 
 
